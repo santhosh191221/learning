@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CodeStreak 240</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--fg:#14181f;--mut:#667085;--bd:#e1e4ea;--ac:#e8590c;--ok:#2f9e44;--bad:#e03131;--h0:#e9ecef;--h1:#ffd8a8;--h2:#ffa94d;--h3:#e8590c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111418;--card:#1a1f26;--fg:#e8eaed;--mut:#98a2b3;--bd:#2c333d;--h0:#262c35;--h1:#5c3a1a;--h2:#a8581a;--h3:#ff7a2e}}
+:root[data-theme="dark"]{--bg:#111418;--card:#1a1f26;--fg:#e8eaed;--mut:#98a2b3;--bd:#2c333d;--h0:#262c35;--h1:#5c3a1a;--h2:#a8581a;--h3:#ff7a2e}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:980px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:0}h2{font-size:17px;margin:0 0 8px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.stat{flex:1;min-width:90px;text-align:center}.stat b{display:block;font-size:22px;color:var(--ac)}.stat span{color:var(--mut);font-size:12px}
+.heat{display:grid;grid-template-columns:repeat(30,1fr);gap:3px}
+.cell{aspect-ratio:1;border-radius:3px;background:var(--h0);border:0;padding:0;cursor:pointer}
+.cell.l1{background:var(--h1)}.cell.l2{background:var(--h2)}.cell.l3{background:var(--h3)}.cell.cur{outline:2px solid var(--fg)}.cell.lock{opacity:.35;cursor:not-allowed}
+button,select,input{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:7px 12px}
+button{cursor:pointer}button.p{background:var(--ac);border-color:var(--ac);color:#fff}button:disabled{opacity:.5}
+textarea{width:100%;min-height:110px;font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:10px}
+pre{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:10px;overflow-x:auto;margin:6px 0;font-size:13px}
+.tbl{overflow-x:auto}table{border-collapse:collapse;font-size:13px}td,th{border:1px solid var(--bd);padding:4px 8px}
+.tag{font-size:12px;color:var(--mut)}.ok{color:var(--ok)}.bad{color:var(--bad)}
+.opt{display:block;width:100%;text-align:left;margin:4px 0}.opt.right{border-color:var(--ok)}.opt.wrong{border-color:var(--bad)}
+.tabs button.on{border-color:var(--ac);color:var(--ac)}
+</style></head><body><main>
+<div class="row" style="justify-content:space-between;margin-bottom:12px"><h1>🔥 CodeStreak 240</h1><span class="tag" id="phase"></span></div>
+<div class="card row" id="stats"></div>
+<div class="card"><h2>240-day heatmap</h2><div class="heat" id="heat"></div><p class="tag">Click an unlocked day to open it. A day unlocks once the previous day is complete.</p></div>
+<div class="card" id="day"></div>
+<div class="card"><h2>⏰ Reminder &amp; check-in</h2>
+<div class="row"><label>Daily time <input type="time" id="rt" value="20:00"></label><button onclick="mkIcs()">Generate .ICS text</button></div>
+<textarea id="ics" readonly placeholder="Generate, copy, and save as codestreak.ics, then import into Google, Apple or Outlook Calendar."></textarea>
+<p class="tag">Check-in log:</p><div class="row"><input id="note" placeholder="How did today go?" style="flex:1"><button onclick="addNote()">Log</button></div><div id="notes" class="tag"></div></div>
+</main>
+<script>
+var PH=[[1,20,"SQL · Beginner",["Relational schemas","SELECT","WHERE & NULLs","ORDER BY","Aggregates","GROUP BY / HAVING","INNER JOIN","LEFT/RIGHT/FULL JOIN","UNION / INTERSECT","String & date functions","CASE WHEN","COALESCE"]],
+[21,55,"SQL · Intermediate",["Subqueries","Correlated subqueries","CTEs","Recursive CTEs","ROW_NUMBER / RANK","LAG / LEAD","Running totals & frames","Self-joins","Cohort retention","Funnel analysis","Pivoting","Views & transactions"]],
+[56,90,"SQL · Expert",["B-Tree / Hash / GIN","Composite & covering indexes","EXPLAIN ANALYZE","Partitioning & sharding","Isolation levels","Deadlocks","Materialized views","Gaps & islands","Median / percentile","FAANG SQL drills"]],
+[91,150,"Python",["Comprehensions","Generators","Decorators","itertools / collections","OOP & dataclasses","Context managers","AsyncIO","Pandas + SQL","pytest & mocking","GIL & memory","Regex","REST ingestion"]],
+[151,210,"DSA + DP",["Two pointers","Sliding window","Prefix sums","Monotonic stack","Linked lists","Binary search on answer","Trees & BST","Tries & heaps","Backtracking","Graphs & Dijkstra","Union-Find","Knapsack","LCS & edit distance","Grid / interval / bitmask DP"]],
+[211,240,"System Design",["Scaling & load balancers","Consistent hashing","Caching & CDN","Replication & CAP","Kafka vs RabbitMQ","Rate limiting","Snowflake IDs","Bloom filters","Raft / Paxos","URL shortener","News feed","Chat system","Video streaming","Payments & ledger"]]];
+function info(d){for(var i=0;i<PH.length;i++){var p=PH[i];if(d>=p[0]&&d<=p[1]){var n=p[3].length,k=Math.floor((d-p[0])/(p[1]-p[0]+1)*n);return{ph:p[2],t:p[3][k]}}}}
+var SCH="employees(id, name, dept, salary)\n(1,'Asha','Eng',120000) (2,'Ravi','Eng',95000)\n(3,'Meena','Ops',70000) (4,'John','Ops',82000) (5,'Li','HR',65000)";
+var C={1:{probs:[
+{t:"Engineers",d:"Return the names of all employees in the 'Eng' department.",sol:"SELECT name FROM employees WHERE dept = 'Eng';",out:"name\nAsha\nRavi",h:["Filter rows with WHERE.","Strings use single quotes."],cx:"O(n) scan; index on dept makes it O(log n + k)."},
+{t:"High earners",d:"Return name and salary for salary above 80000, highest first.",sol:"SELECT name, salary FROM employees WHERE salary > 80000 ORDER BY salary DESC;",out:"name | salary\nAsha | 120000\nRavi | 95000\nJohn | 82000",h:["WHERE then ORDER BY.","DESC for highest first."],cx:"O(n + k log k)."},
+{t:"Headcount per dept",d:"Return each dept and its employee count, largest first.",sol:"SELECT dept, COUNT(*) AS cnt FROM employees GROUP BY dept ORDER BY cnt DESC;",out:"dept | cnt\nEng | 2\nOps | 2\nHR | 1",h:["GROUP BY dept.","COUNT(*) counts rows."],cx:"Hash aggregate O(n)."}],
+mcq:[["COUNT(col) vs COUNT(*)?",["Same","COUNT(col) skips NULLs","COUNT(*) skips NULLs","COUNT(col) counts duplicates once"],1,"COUNT(col) ignores NULLs; COUNT(*) counts rows."],
+["NULL = NULL evaluates to?",["TRUE","FALSE","UNKNOWN (NULL)","Error"],2,"Comparisons with NULL yield UNKNOWN; use IS NULL."],
+["Which clause filters groups?",["WHERE","HAVING","ORDER BY","LIMIT"],1,"HAVING filters after aggregation."],
+["Logical execution order starts with?",["SELECT","WHERE","FROM","ORDER BY"],2,"FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY."],
+["ORDER BY default direction?",["DESC","ASC","Random","Insertion order"],1,"ASC is the default."]]}};
+var S;try{S=JSON.parse(localStorage.getItem("cs240")||"null")}catch(e){}
+S=S||{done:{},solved:{},mcq:{},log:{},xp:0,notes:[],freeze:2};var cur=1,tab="p",pi=0,mi=0;
+function save(){try{localStorage.setItem("cs240",JSON.stringify(S))}catch(e){}}
+function today(){return new Date().toISOString().slice(0,10)}
+function unlocked(d){return d==1||S.done[d-1]||S.done[d]}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function streaks(){var ds=Object.keys(S.log).sort(),best=0,run=0,prev=null;ds.forEach(function(x){var t=new Date(x)/864e5;run=(prev!==null&&t-prev==1)?run+1:1;if(run>best)best=run;prev=t});
+var cs=0,t=Math.floor(new Date(today())/864e5),f=S.freeze;if(!S.log[today()])t--;while(true){var k=new Date(t*864e5).toISOString().slice(0,10);if(S.log[k])cs++;else if(f>0&&cs>0){f--}else break;t--}return[cs,Math.max(best,cs)]}
+function stats(){var s=streaks();document.getElementById("stats").innerHTML=[["🔥",s[0],"Current streak"],["🏆",s[1],"Longest"],["⚡",S.xp,"XP"],["🛡️",S.freeze,"Freeze shields"],["✅",Object.keys(S.done).length,"Days done"]].map(function(a){return '<div class="stat"><b>'+a[0]+" "+a[1]+"</b><span>"+a[2]+"</span></div>"}).join("")}
+function heat(){var h="";for(var d=1;d<=240;d++){var l=S.done[d]?3:(S.solved[d]||S.mcq[d])?2:0;h+='<button class="cell '+(l?"l"+l:"")+(d==cur?" cur":"")+(unlocked(d)?"":" lock")+'" title="Day '+d+'" onclick="go('+d+')"></button>'}document.getElementById("heat").innerHTML=h}
+function go(d){if(!unlocked(d))return;cur=d;pi=0;mi=0;render()}
+function mark(){S.log[today()]=1}
+function checkDone(){var c=C[cur];var ok=c?(Object.keys(S.solved[cur]||{}).length>=c.probs.length&&(S.mcq[cur]||{}).n>=c.mcq.length):false;if(ok&&!S.done[cur]){S.done[cur]=1;S.xp+=50}}
+function render(){var i=info(cur),c=C[cur];document.getElementById("phase").textContent=i.ph;
+var h='<div class="row" style="justify-content:space-between"><h2>Day '+cur+' · '+i.t+(S.done[cur]?' <span class="ok">✓</span>':'')+'</h2><span class="row"><button onclick="go(cur-1)" '+(cur<2?'disabled':'')+'>←</button><button onclick="go(cur+1)" '+(unlocked(cur+1)?'':'disabled')+'>→</button></span></div>';
+if(!c){h+='<p class="tag">Full problem set for this day is not authored yet. Practise the topic elsewhere, then mark the day complete to keep your streak and unlock the next day.</p><button class="p" onclick="manual()">Mark day complete (+30 XP)</button>'}
+else{h+='<div class="tabs row"><button class="'+(tab=="p"?"on":"")+'" onclick="tab=\'p\';render()">Problems ('+c.probs.length+')</button><button class="'+(tab=="m"?"on":"")+'" onclick="tab=\'m\';render()">MCQs ('+c.mcq.length+')</button></div><div id="body"></div>'}
+document.getElementById("day").innerHTML=h;if(c)tab=="p"?prob():mcq();stats();heat()}
+function manual(){S.done[cur]=1;S.xp+=30;mark();save();render()}
+function prob(){var c=C[cur],p=c.probs[pi],s=(S.solved[cur]||{})[pi];
+var h='<div class="row" style="margin:8px 0">'+c.probs.map(function(_,k){return '<button class="'+(k==pi?"on":"")+'" onclick="pi='+k+';prob()">'+(k+1)+((S.solved[cur]||{})[k]?" ✓":"")+'</button>'}).join("")+'</div><h2>'+esc(p.t)+'</h2><p>'+esc(p.d)+'</p><div class="tag">Schema</div><pre>'+esc(SCH)+'</pre><textarea id="code" spellcheck="false" placeholder="Write your SQL here…"></textarea><div class="row" style="margin-top:8px"><button onclick="run()">Run Code</button><button class="p" onclick="sub()">Submit</button><button onclick="hint()">Hint</button><button onclick="sol()">Solution</button></div><div id="res"></div>';
+document.getElementById("body").innerHTML=h}
+function norm(q){return q.toLowerCase().replace(/\s+/g," ").replace(/\s*([,=<>()])\s*/g,"$1").replace(/;$/,"").trim()}
+function tbl(o){var r=o.split("\n").map(function(l){return l.split(" | ")});return '<div class="tbl"><table>'+r.map(function(x,i){return "<tr>"+x.map(function(y){return (i?"<td>":"<th>")+esc(y)+(i?"</td>":"</th>")}).join("")+"</tr>"}).join("")+"</table></div>"}
+function run(){var p=C[cur].probs[pi];document.getElementById("res").innerHTML='<p class="tag">Expected output</p>'+tbl(p.out)+'<p class="tag">This build has no live SQL engine; Submit compares your query to the reference solution.</p>'}
+function sub(){var p=C[cur].probs[pi],q=document.getElementById("code").value,r=document.getElementById("res");
+if(norm(q)==norm(p.sol)){win()}else{r.innerHTML='<p class="bad">Does not match the reference query exactly. Equivalent queries can differ in form.</p><button onclick="win()">I verified mine is correct – count it</button>'}}
+function win(){S.solved[cur]=S.solved[cur]||{};if(!S.solved[cur][pi]){S.solved[cur][pi]=1;S.xp+=20}mark();checkDone();save();document.getElementById("res").innerHTML='<p class="ok">Accepted ✓ +20 XP</p>';stats();heat();prob2()}
+function prob2(){var d=document.getElementById("res").innerHTML;prob();document.getElementById("res").innerHTML=d}
+function hint(){var p=C[cur].probs[pi];document.getElementById("res").innerHTML='<p>💡 '+p.h.map(esc).join("<br>💡 ")+'</p>'}
+function sol(){var p=C[cur].probs[pi];document.getElementById("res").innerHTML='<pre>'+esc(p.sol)+'</pre><p class="tag">Complexity: '+esc(p.cx)+'</p>'}
+function mcq(){var c=C[cur],q=c.mcq[mi],m=S.mcq[cur]=S.mcq[cur]||{n:0,a:{}};
+var h='<p class="tag">Question '+(mi+1)+' / '+c.mcq.length+'</p><h2>'+esc(q[0])+'</h2>'+q[1].map(function(o,k){return '<button class="opt" onclick="ans('+k+')">'+esc(o)+'</button>'}).join("")+'<div id="ex"></div><div class="row" style="margin-top:8px"><button onclick="mi=Math.max(0,mi-1);mcq()">Prev</button><button onclick="mi=Math.min('+(c.mcq.length-1)+',mi+1);mcq()">Next</button></div>';
+document.getElementById("body").innerHTML=h;if(m.a[mi]!==undefined)show(m.a[mi])}
+function show(k){var q=C[cur].mcq[mi],o=document.querySelectorAll(".opt");o.forEach(function(b,i){b.disabled=true;if(i==q[2])b.classList.add("right");else if(i==k)b.classList.add("wrong")});document.getElementById("ex").innerHTML='<p class="'+(k==q[2]?"ok":"bad")+'">'+(k==q[2]?"Correct":"Incorrect")+' — '+esc(q[3])+'</p>'}
+function ans(k){var m=S.mcq[cur];if(m.a[mi]===undefined){m.a[mi]=k;m.n++;if(k==C[cur].mcq[mi][2])S.xp+=5;mark();checkDone();save();stats();heat()}show(m.a[mi])}
+function mkIcs(){var t=document.getElementById("rt").value.replace(":","")+"00",d=today().replace(/-/g,"");
+document.getElementById("ics").value=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//CodeStreak240//EN","BEGIN:VEVENT","UID:codestreak240@local","DTSTAMP:"+d+"T000000Z","DTSTART:"+d+"T"+t,"DURATION:PT1H","RRULE:FREQ=DAILY;COUNT=240","SUMMARY:CodeStreak 240 daily practice","BEGIN:VALARM","TRIGGER:-PT10M","ACTION:DISPLAY","DESCRIPTION:Time for today’s problems","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n")}
+function addNote(){var v=document.getElementById("note").value.trim();if(!v)return;S.notes.unshift(today()+": "+v);S.notes=S.notes.slice(0,20);document.getElementById("note").value="";save();notes()}
+function notes(){document.getElementById("notes").innerHTML=S.notes.map(esc).join("<br>")}
+notes();render();
+</script></body></html>
